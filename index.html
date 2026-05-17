@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>GOLF NEAR ME</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0f0d; --sur:#111a15; --card:#161f1a;
+  --border:rgba(255,255,255,.08);
+  --accent:#00ff87; --text:#f0f4f1; --muted:rgba(240,244,241,.45);
+  --pass:#ff4560; --want:#00ff87; --gora:#3b82f6; --rental:#f59e0b;
+  --cheap:#00ff87; --mid:#fbbf24; --prem:#f87171;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none;}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-serif;}
+
+/* ══════ VIEWS ══════ */
+.view{position:fixed;inset:0;display:flex;flex-direction:column;transition:opacity .3s;}
+.view.hidden{opacity:0;pointer-events:none;}
+
+/* ══════ ONBOARD ══════ */
+#v-onboard{background:var(--bg);align-items:center;justify-content:center;padding:32px 22px;text-align:center;z-index:10;}
+.ob-icon{font-size:68px;margin-bottom:16px;animation:float 3s ease-in-out infinite;}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.ob-h1{font-family:'Syne',sans-serif;font-size:32px;font-weight:800;line-height:1.15;margin-bottom:10px;
+  background:linear-gradient(135deg,#fff 30%,var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.ob-p{font-size:13px;color:var(--muted);line-height:1.8;margin-bottom:22px;}
+.ob-feats{display:flex;flex-direction:column;gap:7px;width:100%;max-width:320px;margin-bottom:24px;}
+.ob-feat{display:flex;align-items:center;gap:11px;background:var(--sur);border:1px solid var(--border);border-radius:12px;padding:10px 13px;text-align:left;}
+.ob-feat-icon{font-size:18px;flex-shrink:0;}
+.ob-feat-txt{font-size:11px;color:var(--muted);line-height:1.5;}
+.ob-feat-txt strong{display:block;font-size:12px;color:var(--text);margin-bottom:1px;}
+#ob-btn{width:100%;max-width:320px;padding:15px;background:var(--accent);color:#0a0f0d;border:none;border-radius:50px;
+  font-family:'Noto Sans JP',sans-serif;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;}
+#ob-btn.loading{background:#1e3d28;color:var(--muted);pointer-events:none;}
+
+/* ══════ SWIPE VIEW ══════ */
+#v-swipe{background:var(--bg);z-index:5;}
+
+/* ヘッダー */
+#sw-hdr{flex-shrink:0;padding:12px 16px 8px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);}
+.logo{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--accent);letter-spacing:1px;}
+.logo-sub{font-size:10px;color:var(--muted);}
+#sw-want-btn{margin-left:auto;position:relative;background:rgba(0,255,135,.1);border:1px solid rgba(0,255,135,.25);
+  color:var(--accent);border-radius:50px;padding:7px 14px;font-size:12px;font-weight:700;font-family:'Noto Sans JP',sans-serif;cursor:pointer;display:flex;align-items:center;gap:5px;}
+#want-count{position:absolute;top:-5px;right:-5px;background:var(--accent);color:#0a0f0d;border-radius:50%;width:18px;height:18px;
+  font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;display:none;}
+
+/* 検索バー */
+#sw-search{flex-shrink:0;padding:8px 14px;background:var(--sur);border-bottom:1px solid var(--border);display:flex;gap:7px;}
+#sw-inp{flex:1;background:var(--card);border:1px solid var(--border);border-radius:50px;padding:8px 14px;color:var(--text);font-size:13px;font-family:'Noto Sans JP',sans-serif;outline:none;}
+#sw-inp::placeholder{color:var(--muted);}
+#sw-inp:focus{border-color:var(--accent);}
+#sw-go{background:var(--accent);color:#0a0f0d;border:none;border-radius:50px;padding:8px 16px;font-size:12px;font-weight:700;font-family:'Noto Sans JP',sans-serif;cursor:pointer;}
+
+/* フィルター */
+#sw-filter{flex-shrink:0;padding:8px 14px;background:var(--sur);border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:8px;}
+.f-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
+.f-lbl{font-size:10px;color:var(--muted);font-weight:700;min-width:52px;}
+#sw-slider{flex:1;min-width:0;-webkit-appearance:none;appearance:none;height:4px;border-radius:2px;outline:none;cursor:pointer;
+  background:linear-gradient(to right,var(--accent) 0%,var(--accent) var(--pct,100%),rgba(255,255,255,.12) var(--pct,100%),rgba(255,255,255,.12) 100%);}
+#sw-slider::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;background:var(--accent);border:2px solid var(--bg);border-radius:50%;box-shadow:0 0 6px rgba(0,255,135,.4);}
+#sw-slider-val{font-size:11px;font-weight:700;color:var(--accent);white-space:nowrap;min-width:52px;text-align:right;}
+.f-reset{background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--muted);font-size:10px;padding:3px 8px;border-radius:6px;cursor:pointer;font-family:'Noto Sans JP',sans-serif;display:none;}
+.pchips{display:flex;gap:5px;flex-wrap:wrap;}
+.pchip{padding:4px 10px;border-radius:20px;font-size:10px;font-weight:700;border:1.5px solid var(--border);color:var(--muted);background:transparent;font-family:'Noto Sans JP',sans-serif;cursor:pointer;}
+.pchip.ac{background:rgba(0,255,135,.1);border-color:var(--cheap);color:var(--cheap);}
+.pchip.am{background:rgba(251,191,36,.1);border-color:var(--mid);color:var(--mid);}
+.pchip.ap{background:rgba(248,113,113,.1);border-color:var(--prem);color:var(--prem);}
+
+/* ステータス */
+#sw-status{flex-shrink:0;padding:6px 14px;background:rgba(0,255,135,.04);border-bottom:1px solid rgba(0,255,135,.1);
+  display:flex;justify-content:space-between;font-size:11px;}
+#sw-count{color:var(--accent);font-weight:700;}
+#sw-loc{color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:55%;}
+
+/* ── デッキエリア ── */
+#deck-area{flex:1;min-height:0;position:relative;overflow:hidden;}
+
+/* カウンター */
+#deck-counter{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:20;
+  background:rgba(10,15,13,.75);border:1px solid var(--border);border-radius:50px;
+  padding:4px 14px;font-size:11px;color:var(--muted);white-space:nowrap;pointer-events:none;}
+
+/* パス/いいね オーバーレイラベル */
+#lbl-pass,#lbl-want{
+  position:absolute;top:50%;transform:translateY(-50%);z-index:30;
+  font-family:'Syne',sans-serif;font-size:36px;font-weight:800;
+  border:4px solid;border-radius:10px;padding:6px 16px;
+  opacity:0;transition:opacity .1s;pointer-events:none;
+}
+#lbl-pass{left:20px;color:var(--pass);border-color:var(--pass);transform:translateY(-50%) rotate(-15deg);}
+#lbl-want{right:20px;color:var(--want);border-color:var(--want);transform:translateY(-50%) rotate(15deg);}
+
+/* ── スワイプカード ── */
+.swipe-card{
+  position:absolute;inset:8px 10px;
+  background:var(--card);border:1px solid var(--border);border-radius:24px;
+  overflow:hidden;cursor:grab;
+  transition:box-shadow .2s;
+  display:flex;flex-direction:column;
+  will-change:transform;
+  touch-action:none;
+}
+.swipe-card:active{cursor:grabbing;}
+
+/* カードヒーロー */
+.sc-hero{
+  flex-shrink:0;height:45%;min-height:140px;max-height:220px;
+  position:relative;display:flex;align-items:center;justify-content:center;font-size:72px;
+  background:linear-gradient(135deg,#0d2218,#1a4a2e);
+}
+.sc-hero-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(10,15,13,1) 0%,rgba(10,15,13,.5) 45%,transparent 100%);}
+.sc-rank{position:absolute;top:12px;left:14px;z-index:2;font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:rgba(255,255,255,.1);}
+.sc-rank.top{color:rgba(0,255,135,.4);}
+.sc-badges{position:absolute;top:10px;right:10px;z-index:2;display:flex;flex-direction:column;align-items:flex-end;gap:4px;}
+.sc-dist{background:rgba(10,15,13,.8);border:1px solid var(--accent);border-radius:50px;padding:3px 10px;font-size:12px;font-weight:700;color:var(--accent);}
+.sc-drive{background:rgba(10,15,13,.7);border-radius:50px;padding:2px 8px;font-size:10px;font-weight:700;color:rgba(255,255,255,.65);}
+
+/* ── ヒーロー下部：合計バナー ── */
+.sc-total-banner{
+  position:absolute;bottom:0;left:0;right:0;z-index:3;
+  padding:10px 14px 12px;
+  display:flex;align-items:flex-end;justify-content:space-between;
+}
+.sc-total-banner-main{
+  display:flex;flex-direction:column;gap:1px;
+}
+.sc-total-banner-lbl{
+  font-size:10px;color:rgba(255,255,255,.55);font-weight:700;letter-spacing:.5px;
+}
+.sc-total-banner-val{
+  font-family:'Syne',sans-serif;font-size:28px;font-weight:800;line-height:1;
+}
+.sc-total-banner-val.cheap{color:var(--cheap);}
+.sc-total-banner-val.mid  {color:var(--mid);}
+.sc-total-banner-val.prem {color:var(--prem);}
+.sc-total-banner-sub{
+  text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:2px;
+}
+.sc-total-banner-toll{font-size:10px;color:rgba(255,255,255,.45);}
+.sc-total-banner-weekday{font-size:11px;color:rgba(255,255,255,.35);}
+
+/* カードボディ */
+.sc-body{flex:1;min-height:0;overflow-y:auto;padding:12px 16px 16px;display:flex;flex-direction:column;gap:9px;}
+.sc-body::-webkit-scrollbar{display:none;}
+.sc-name{font-size:18px;font-weight:700;line-height:1.2;}
+.sc-addr{font-size:11px;color:var(--muted);}
+.sc-tags{display:flex;gap:5px;flex-wrap:wrap;}
+.sc-tag{font-size:10px;font-weight:700;background:rgba(0,255,135,.07);border:1px solid rgba(0,255,135,.18);color:var(--accent);padding:2px 8px;border-radius:20px;}
+.sc-prices{display:flex;gap:6px;}
+.sc-price{flex:1;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:10px;padding:8px;text-align:center;}
+.sc-price-lbl{font-size:10px;color:var(--muted);margin-bottom:3px;}
+.sc-price-val{font-size:16px;font-weight:700;}
+.sc-price-val.cheap{color:var(--cheap);}
+.sc-price-val.mid{color:var(--mid);}
+.sc-price-val.prem{color:var(--prem);}
+.sc-price-sub{font-size:9px;color:var(--muted);margin-top:1px;}
+.sc-note{font-size:12px;color:var(--muted);font-style:italic;}
+
+/* アクションボタン（下部） */
+#action-btns{
+  flex-shrink:0;padding:10px 20px calc(10px + env(safe-area-inset-bottom,0));
+  display:flex;align-items:center;justify-content:center;gap:20px;
+  background:linear-gradient(to top,var(--bg) 70%,transparent);
+}
+.act-btn{
+  border:none;border-radius:50%;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:24px;transition:transform .15s,box-shadow .15s;
+}
+.act-btn:active{transform:scale(.9);}
+#btn-pass{width:60px;height:60px;background:rgba(255,69,96,.12);border:2px solid rgba(255,69,96,.35);color:var(--pass);}
+#btn-pass:active{background:rgba(255,69,96,.3);}
+#btn-want{width:72px;height:72px;background:rgba(0,255,135,.12);border:2px solid rgba(0,255,135,.35);color:var(--want);}
+#btn-want:active{background:rgba(0,255,135,.3);}
+#btn-undo{width:48px;height:48px;background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--muted);font-size:18px;}
+
+/* デッキ空 */
+#deck-empty{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:32px;color:var(--muted);}
+#deck-empty .de-icon{font-size:56px;margin-bottom:14px;}
+#deck-empty h3{font-size:18px;font-weight:700;color:var(--text);margin-bottom:8px;}
+#deck-empty p{font-size:13px;line-height:1.7;}
+#deck-empty button{margin-top:18px;background:var(--accent);color:#0a0f0d;border:none;border-radius:50px;padding:12px 28px;font-size:14px;font-weight:700;font-family:'Noto Sans JP',sans-serif;cursor:pointer;}
+
+/* ══════ WANT LIST VIEW ══════ */
+#v-want{background:var(--bg);z-index:8;}
+#wl-hdr{flex-shrink:0;padding:14px 16px 10px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);}
+#wl-back{background:transparent;border:none;color:var(--muted);font-size:22px;cursor:pointer;padding:0 4px;}
+#wl-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--accent);}
+#wl-subtitle{font-size:10px;color:var(--muted);}
+#wl-list{flex:1;min-height:0;overflow-y:scroll;-webkit-overflow-scrolling:touch;padding:12px 14px 80px;display:flex;flex-direction:column;gap:12px;}
+#wl-list::-webkit-scrollbar{display:none;}
+
+/* Want カード */
+.wl-card{background:var(--card);border:1px solid var(--border);border-radius:18px;overflow:hidden;flex-shrink:0;}
+.wl-hero{height:90px;position:relative;display:flex;align-items:center;justify-content:center;font-size:42px;background:linear-gradient(135deg,#0d2218,#1a4a2e);}
+.wl-hero-ov{position:absolute;inset:0;background:linear-gradient(to top,rgba(22,31,26,.95) 0%,transparent 50%);}
+.wl-dist{position:absolute;top:8px;right:8px;z-index:2;background:rgba(10,15,13,.8);border:1px solid var(--accent);border-radius:50px;padding:2px 8px;font-size:10px;font-weight:700;color:var(--accent);}
+.wl-body{padding:10px 14px 12px;}
+.wl-name{font-size:14px;font-weight:700;margin-bottom:3px;}
+.wl-meta{font-size:11px;color:var(--muted);margin-bottom:8px;}
+.wl-prices{display:flex;gap:8px;margin-bottom:10px;font-size:12px;}
+.wl-price{flex:1;text-align:center;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:8px;padding:6px;}
+.wl-price-lbl{font-size:9px;color:var(--muted);margin-bottom:2px;}
+.wl-price-val{font-weight:700;}
+.wl-price-val.cheap{color:var(--cheap);}
+.wl-price-val.mid{color:var(--mid);}
+.wl-price-val.prem{color:var(--prem);}
+.wl-btns{display:flex;gap:7px;}
+.wl-btn-gora{flex:2;padding:11px;background:var(--gora);color:#fff;border:none;border-radius:10px;font-family:'Noto Sans JP',sans-serif;font-size:13px;font-weight:700;cursor:pointer;}
+.wl-btn-gora:active{opacity:.82;}
+.wl-btn-remove{flex:1;padding:11px;background:rgba(255,69,96,.1);color:var(--pass);border:1px solid rgba(255,69,96,.2);border-radius:10px;font-family:'Noto Sans JP',sans-serif;font-size:12px;font-weight:700;cursor:pointer;}
+.wl-btn-map{flex:1;padding:11px;background:rgba(255,255,255,.05);color:var(--muted);border:1px solid var(--border);border-radius:10px;font-family:'Noto Sans JP',sans-serif;font-size:12px;font-weight:700;cursor:pointer;}
+.wl-btn-rental{flex:1;padding:11px;background:rgba(245,158,11,.1);color:var(--rental);border:1px solid rgba(245,158,11,.2);border-radius:10px;font-family:'Noto Sans JP',sans-serif;font-size:12px;font-weight:700;cursor:pointer;}
+.wl-aff{font-size:9px;color:rgba(255,255,255,.15);text-align:right;margin-top:5px;}
+
+#wl-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px;color:var(--muted);}
+#wl-empty .we-icon{font-size:52px;margin-bottom:12px;}
+#wl-empty p{font-size:13px;line-height:1.7;}
+
+/* ══════ RENTAL MODAL ══════ */
+#modal-wrap{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);align-items:flex-end;}
+#modal-wrap.open{display:flex;}
+#modal{background:var(--sur);border:1px solid var(--border);border-radius:24px 24px 0 0;padding:20px 18px calc(22px + env(safe-area-inset-bottom,0));width:100%;}
+.m-pill{width:36px;height:4px;background:rgba(255,255,255,.1);border-radius:2px;margin:0 auto 16px;}
+.m-h{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;margin-bottom:4px;}
+.m-sub{font-size:11px;color:var(--muted);margin-bottom:14px;}
+.m-opts{display:flex;flex-direction:column;gap:8px;}
+.m-opt{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;cursor:pointer;}
+.m-opt:active{border-color:var(--accent);}
+.m-opt-ico{font-size:24px;}
+.m-opt-inf{flex:1;}
+.m-opt-name{font-size:13px;font-weight:700;margin-bottom:1px;}
+.m-opt-desc{font-size:10px;color:var(--muted);}
+.m-opt-pr{font-size:9px;color:var(--accent);font-weight:700;}
+#m-close{margin-top:10px;width:100%;padding:11px;background:rgba(255,255,255,.04);border:none;border-radius:12px;color:var(--muted);font-size:13px;cursor:pointer;font-family:'Noto Sans JP',sans-serif;}
+.m-aff{font-size:9px;color:rgba(255,255,255,.12);text-align:center;margin-top:7px;}
+
+/* ══════ UTILS ══════ */
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{display:inline-block;width:15px;height:15px;border:2px solid rgba(0,0,0,.15);border-top-color:#0a0f0d;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;}
+.pr-badge{background:rgba(255,255,255,.08);padding:1px 4px;border-radius:3px;font-size:8px;}
+
+/* ── プレースホルダー ── */
+.sc-placeholder{display:flex;flex-direction:column;align-items:center;gap:4px;}
+.sc-initial{
+  font-family:'Syne',sans-serif;font-size:38px;font-weight:800;
+  color:rgba(255,255,255,.22);letter-spacing:3px;line-height:1;
+}
+.sc-emoji{font-size:32px;line-height:1;}
+
+/* ── wl HPボタン ── */
+.wl-btn-hp{
+  flex:1;padding:11px;
+  background:rgba(255,255,255,.05);color:var(--text);
+  border:1px solid var(--border);border-radius:10px;
+  font-family:'Noto Sans JP',sans-serif;font-size:12px;font-weight:700;cursor:pointer;
+}
+.wl-btn-hp:active{background:rgba(255,255,255,.12);}
+.wl-btn-remove{
+  flex:1;padding:11px;
+  background:rgba(255,69,96,.08);color:var(--pass);
+  border:1px solid rgba(255,69,96,.18);border-radius:10px;
+  font-family:'Noto Sans JP',sans-serif;font-size:11px;font-weight:700;cursor:pointer;
+}
+.wl-btn-insta{
+  flex:1;padding:11px;
+  background:linear-gradient(135deg,rgba(131,58,180,.15),rgba(253,29,29,.1),rgba(252,176,69,.1));
+  color:#e1306c;border:1px solid rgba(225,48,108,.25);border-radius:10px;
+  font-family:'Noto Sans JP',sans-serif;font-size:12px;font-weight:700;cursor:pointer;
+}
+.wl-btn-insta:active{background:linear-gradient(135deg,rgba(131,58,180,.3),rgba(253,29,29,.2),rgba(252,176,69,.2));}
+
+/* ── 高速代・トータルブロック（スワイプカード）── */
+.sc-toll-block{
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);
+  border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;
+}
+.sc-toll-row{display:flex;justify-content:space-between;align-items:center;}
+.sc-toll-lbl{font-size:11px;color:var(--muted);}
+.sc-toll-val{font-size:12px;font-weight:700;color:var(--muted);}
+.sc-total-row{display:flex;justify-content:space-between;align-items:center;padding-top:6px;border-top:1px solid rgba(255,255,255,.06);}
+.sc-total-lbl{font-size:11px;color:var(--muted);}
+.sc-total-val{font-size:16px;font-weight:700;}
+.sc-total-we .sc-total-lbl{color:rgba(240,244,241,.3);}
+.sc-total-we .sc-total-val{font-size:13px;opacity:.75;}
+
+/* ── 高速代・トータルブロック（行きたいリスト）── */
+.wl-total-block{
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);
+  border-radius:10px;padding:9px 12px;display:flex;flex-direction:column;gap:5px;
+  margin-bottom:2px;
+}
+.wl-total-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;}
+.wl-total-row span:first-child{color:var(--muted);}
+.wl-total-val{font-size:15px;font-weight:700;}
+</style>
+</head>
+<body>
+
+<!-- ══ ONBOARD ══ -->
+<div id="v-onboard" class="view">
+  <div class="ob-icon">⛳</div>
+  <div class="ob-h1">近くの<br>ゴルフ場へ。</div>
+  <p class="ob-p">スワイプして気になるコースを保存、<br>GORAでそのまま予約できる</p>
+  <div class="ob-feats">
+    <div class="ob-feat"><span class="ob-feat-icon">👉</span><div class="ob-feat-txt"><strong>右スワイプで「行きたい」</strong>気になるコースをどんどん保存</div></div>
+    <div class="ob-feat"><span class="ob-feat-icon">🚗</span><div class="ob-feat-txt"><strong>高速ドライブ時間で絞り込み</strong>「思ったより遠かった」をなくす</div></div>
+    <div class="ob-feat"><span class="ob-feat-icon">📅</span><div class="ob-feat-txt"><strong>平日・土日料金を表示</strong>保存リストからGORAへ直結予約</div></div>
+  </div>
+  <button id="ob-btn" onclick="startApp()"><span>📍</span> 現在地を取得してはじめる</button>
+</div>
+
+<!-- ══ SWIPE VIEW ══ -->
+<div id="v-swipe" class="view hidden">
+  <div id="sw-hdr">
+    <div><div class="logo">GOLF NEAR ME</div><div class="logo-sub">スワイプして気になるコースを保存</div></div>
+    <button id="sw-want-btn" onclick="showView('want')">
+      ⛳ 行きたい
+      <span id="want-count">0</span>
+    </button>
+  </div>
+
+  <div id="sw-search">
+    <input id="sw-inp" type="search" placeholder="住所・地名で再検索" onkeydown="if(event.key==='Enter')doSearch()">
+    <button id="sw-go" onclick="doSearch()">検索</button>
+  </div>
+
+  <div id="sw-filter">
+    <div class="f-row">
+      <span class="f-lbl">🚗 何時間以内で行ける？</span>
+      <input type="range" id="sw-slider" min="0.5" max="4" step="0.5" value="4" oninput="onSlider(this)">
+      <span id="sw-slider-val">制限なし</span>
+      <button class="f-reset" id="sl-reset" onclick="resetSlider()">✕</button>
+    </div>
+    <div class="f-row">
+      <span class="f-lbl">💴 料金</span>
+      <div class="pchips">
+        <button class="pchip ac" data-p="all"   onclick="setPrice('all',this)">すべて</button>
+        <button class="pchip"    data-p="cheap" onclick="setPrice('cheap',this)">〜¥8,000</button>
+        <button class="pchip"    data-p="mid"   onclick="setPrice('mid',this)">〜¥15,000</button>
+        <button class="pchip"    data-p="prem"  onclick="setPrice('prem',this)">¥15,000〜</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="sw-status">
+    <span id="sw-count">— 件</span>
+    <span id="sw-loc">—</span>
+  </div>
+
+  <div id="deck-area">
+    <div id="deck-counter">— / —</div>
+    <div id="lbl-pass">PASS 👎</div>
+    <div id="lbl-want">WANT ⛳</div>
+    <div id="deck-empty">
+      <div class="de-icon">🏌️</div>
+      <h3>全部チェックしました！</h3>
+      <p>フィルターを変えるか<br>行きたいリストを確認してください</p>
+      <button onclick="resetDeck()">🔄 もう一度</button>
+    </div>
+  </div>
+
+  <div id="action-btns">
+    <button id="btn-undo" class="act-btn" onclick="undoSwipe()" title="戻す">↩️</button>
+    <button id="btn-pass" class="act-btn" onclick="doPass()" title="パス">✕</button>
+    <button id="btn-want" class="act-btn" onclick="doWant()" title="行きたい">⛳</button>
+  </div>
+</div>
+
+<!-- ══ WANT LIST VIEW ══ -->
+<div id="v-want" class="view hidden">
+  <div id="wl-hdr">
+    <button id="wl-back" onclick="showView('swipe')">‹</button>
+    <div>
+      <div id="wl-title">行きたいリスト ⛳</div>
+      <div id="wl-subtitle">保存したコース</div>
+    </div>
+    <button id="wl-share-btn" onclick="shareList()" style="margin-left:auto;background:var(--accent);color:#0a0f0d;border:none;border-radius:50px;padding:8px 14px;font-size:12px;font-weight:700;font-family:'Noto Sans JP',sans-serif;cursor:pointer;">📤 共有</button>
+  </div>
+  <div id="wl-list"></div>
+  <div id="wl-empty">
+    <div class="we-icon">👈</div>
+    <p>右スワイプしたコースが<br>ここに保存されます</p>
+  </div>
+</div>
+
+<!-- ══ RENTAL MODAL ══ -->
+<div id="modal-wrap" onclick="if(event.target===this)closeModal()">
+  <div id="modal">
+    <div class="m-pill"></div>
+    <div class="m-h">🚗 移動手段を選ぶ</div>
+    <div class="m-sub">ゴルフ場周辺のレンタカー・カーシェアを検索します</div>
+    <div class="m-opts">
+      <div class="m-opt" onclick="openRental('times')">
+        <div class="m-opt-ico">🅿️</div>
+        <div class="m-opt-inf"><div class="m-opt-name">タイムズカー</div><div class="m-opt-desc">カーシェア・レンタカー｜短時間〜</div></div>
+        <div class="m-opt-pr">PR</div>
+      </div>
+      <div class="m-opt" onclick="openRental('jalan')">
+        <div class="m-opt-ico">🚘</div>
+        <div class="m-opt-inf"><div class="m-opt-name">じゃらんレンタカー</div><div class="m-opt-desc">複数社を比較・1日〜旅行向け</div></div>
+        <div class="m-opt-pr">PR</div>
+      </div>
+    </div>
+    <button id="m-close" onclick="closeModal()">閉じる</button>
+    <div class="m-aff">※ 上記リンクはアフィリエイト広告です</div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════
+// CONFIG
+// ══════════════════════════════════
+const AFF={rakutenId:'XXXXXXX',timesAffId:'YYYYYYY',jalanId:'ZZZZZZZ'};
+
+// ── Workers エンドポイント（デプロイ後に変更） ──
+const WORKERS_URL='https://golf-near-me-api.golf-near-me.workers.dev';
+
+// ══════════════════════════════════
+// DATA（GORA予約可・会員制除外）
+// ══════════════════════════════════
+const COURSES=[
+  {id:1, name:'川奈ホテルゴルフコース', addr:'静岡県伊東市', lat:34.9142,lng:139.1183,holes:36,weekday:12000,weekend:18000,tags:['リゾート','海眺望','36H'],e:'🌊',note:'伊豆の絶景コース',          hp:'https://www.kawana-golf.jp/'},
+  {id:2, name:'箱根カントリー倶楽部',   addr:'神奈川県箱根町',lat:35.2330,lng:139.0770,holes:18,weekday:9000, weekend:13000,tags:['高原','紅葉'],e:'🍁',note:'山岳コース',                    hp:'https://www.hakone-cc.co.jp/'},
+  {id:3, name:'千葉ゴルフ倶楽部',       addr:'千葉県千葉市', lat:35.5400,lng:140.1300,holes:18,weekday:7000, weekend:11000,tags:['フラット','初心者OK'],e:'🌿',note:'千葉市内から近い',          hp:'https://www.chiba-golf.jp/'},
+  {id:4, name:'成田ゴルフ倶楽部',       addr:'千葉県成田市', lat:35.7760,lng:140.3180,holes:18,weekday:6500, weekend:10000,tags:['フラット','広大'],e:'🌾',note:'成田空港近く',                hp:'https://www.narita-gc.jp/'},
+  {id:5, name:'富士カントリー倶楽部',   addr:'静岡県富士市', lat:35.1800,lng:138.6800,holes:27,weekday:8000, weekend:12000,tags:['富士山眺望','27H'],e:'🗻',note:'富士山を望む',                hp:'https://www.fujicountry.co.jp/'},
+  {id:6, name:'太平洋クラブ御殿場',     addr:'静岡県御殿場市',lat:35.3100,lng:138.9600,holes:36,weekday:11000,weekend:16000,tags:['名門','36H','富士山'],e:'🏔️',note:'御殿場の名門',            hp:'https://www.taiheiyoclub.co.jp/course/gotemba/'},
+  {id:7, name:'大阪ゴルフクラブ',       addr:'大阪府高槻市', lat:34.9000,lng:135.6200,holes:18,weekday:7500, weekend:11000,tags:['関西','フラット'],e:'🌸',note:'大阪市街から近い',              hp:'https://www.osaka-golf.jp/'},
+  {id:8, name:'神戸ゴルフ倶楽部',       addr:'兵庫県神戸市', lat:34.7400,lng:135.2800,holes:9, weekday:8000, weekend:13000,tags:['歴史','9H'],e:'⛰️',note:'日本最古のコース',                  hp:'https://www.kobegolf.jp/'},
+  {id:9, name:'琵琶湖カントリー倶楽部', addr:'滋賀県大津市', lat:35.0200,lng:135.8500,holes:18,weekday:6000, weekend:9500, tags:['琵琶湖眺望'],e:'🏞️',note:'湖畔の絶景',                      hp:'https://www.biwako-cc.jp/'},
+  {id:10,name:'六甲アイランドゴルフ',   addr:'兵庫県神戸市', lat:34.6800,lng:135.2600,holes:18,weekday:5500, weekend:8500, tags:['都市型','アクセス良'],e:'🌃',note:'神戸都市型',                hp:'https://www.rokkoisland-golf.jp/'},
+  {id:11,name:'名古屋ゴルフ倶楽部和合', addr:'愛知県日進市', lat:35.1300,lng:137.0300,holes:18,weekday:9000, weekend:14000,tags:['名門','競技'],e:'🌾',note:'東海の名門',                      hp:'https://www.nagoyagolf.or.jp/'},
+  {id:12,name:'三好カントリー倶楽部',   addr:'愛知県みよし市',lat:35.0800,lng:137.0800,holes:54,weekday:7000, weekend:10500,tags:['54H','初心者OK'],e:'🍀',note:'54ホール大型CC',               hp:'https://www.miyoshi-cc.co.jp/'},
+  {id:13,name:'北広島クラシック',       addr:'北海道北広島市',lat:42.9800,lng:141.5600,holes:18,weekday:5000, weekend:7500, tags:['北海道','広大'],e:'❄️',note:'雄大な北海道',                  hp:'https://www.kitahiroshima-classic.jp/'},
+  {id:14,name:'札幌ゴルフ倶楽部輪厚C', addr:'北海道北広島市',lat:43.0100,lng:141.5100,holes:18,weekday:7000, weekend:10000,tags:['名門','北海道'],e:'🌲',note:'北海道の名コース',               hp:'https://www.sapporogolfclub.jp/'},
+  {id:15,name:'福岡雷山ゴルフ倶楽部',  addr:'福岡県糸島市', lat:33.5800,lng:130.3200,holes:18,weekday:6000, weekend:9000, tags:['九州','自然'],e:'🌻',note:'糸島の自然の中で',                  hp:'https://www.raizangolf.jp/'},
+  {id:16,name:'ザ・クイーンズヒルGC',  addr:'福岡県宮若市', lat:33.7300,lng:130.6700,holes:27,weekday:7500, weekend:11000,tags:['九州','27H'],e:'👑',note:'丘陵コース',                        hp:'https://www.queenshill-gc.jp/'},
+  {id:17,name:'仙台カントリー倶楽部',  addr:'宮城県仙台市', lat:38.1800,lng:140.8200,holes:18,weekday:5500, weekend:8000, tags:['東北','四季'],e:'🍃',note:'杜の都仙台',                        hp:'https://www.sendai-cc.jp/'},
+  {id:18,name:'加賀カントリー倶楽部',  addr:'石川県加賀市', lat:36.3200,lng:136.3100,holes:18,weekday:5000, weekend:7500, tags:['北陸','温泉地'],e:'♨️',note:'加賀温泉郷近く',                 hp:'https://www.kaga-cc.jp/'},
+  {id:19,name:'沖縄県総合運動公園GC',  addr:'沖縄県沖縄市', lat:26.3400,lng:127.8100,holes:18,weekday:4500, weekend:6500, tags:['沖縄','リゾート'],e:'🌺',note:'青い空の下で',                  hp:'https://www.okinawa-park.jp/golf/'},
+  {id:20,name:'EMウェルネスリゾートGC',addr:'沖縄県恩納村', lat:26.4900,lng:127.8600,holes:18,weekday:6000, weekend:9000, tags:['リゾート','海眺望'],e:'🏖️',note:'恩納村リゾート',              hp:'https://www.em-wellness.com/golf/'},
+];
+
+// ══════════════════════════════════
+// STATE
+// ══════════════════════════════════
+let uLat=null,uLng=null,uLabel='';
+let cachedCourses=null; // APIから取得済みコースのキャッシュ
+let maxHours=null,priceFilter='all';
+let deck=[];        // 表示中のキュー（インデックス配列）
+let deckIdx=0;      // 現在のカード位置
+let wantList=[];    // 行きたいリスト
+let history=[];     // undo用
+let rentalUrls={};
+let currentView='swipe';
+
+// ══════════════════════════════════
+// UTILS
+// ══════════════════════════════════
+function haversine(a1,o1,a2,o2){
+  const R=6371,r=d=>d*Math.PI/180;
+  const da=r(a2-a1),dl=r(o2-o1);
+  const s=Math.sin(da/2)**2+Math.cos(r(a1))*Math.cos(r(a2))*Math.sin(dl/2)**2;
+  return R*2*Math.atan2(Math.sqrt(s),Math.sqrt(1-s));
+}
+function estDriveH(km){
+  const f=km<50?1.8:km<100?1.55:km<200?1.45:1.4;
+  return (km*f/80)+(Math.min(30,km*.15)/60);
+}
+function fmtT(h){
+  if(h<1)return Math.round(h*60)+'分';
+  const hh=Math.floor(h),mm=Math.round((h-hh)*60);
+  return mm?hh+'時間'+mm+'分':hh+'時間';
+}
+
+// ── 高速代推定（普通車・ETC昼間）──
+// NEXCO平均 約36.6円/km（2024年）
+// 短距離は一般道比率高いため補正あり
+// 往復で計算、100円単位に切り上げ
+function estToll(km){
+  // 実際に高速を使う推定距離（一般道アクセス分を引く）
+  // 高速走行距離（一般道アクセス分を考慮）
+  const hwKm = km < 20  ? 0
+             : km < 50  ? km * 0.85
+             : km < 100 ? km * 0.9
+             :              km * 0.92;
+  if(hwKm <= 0) return 0;
+  // ETC料金 ≒ 46円/km（首都高・一般有料道路込み実態値）
+  const perKm = 46;
+  let oneway = hwKm * perKm;
+  // 首都高など定額加算（近距離は特に高い）
+  if(km < 80) oneway += 400;
+  else if(km < 150) oneway += 400;
+  // 長距離割引
+  if(hwKm > 200) oneway *= 0.88;
+  else if(hwKm > 100) oneway *= 0.94;
+  // 往復・100円単位切り上げ
+  const roundtrip = oneway * 2;
+  return Math.ceil(roundtrip / 100) * 100;
+}
+function fmtToll(yen){
+  if(yen === 0) return '高速不要';
+  return '約¥'+yen.toLocaleString();
+}
+function pcls(p){return p<8000?'cheap':p<15000?'mid':'prem';}
+// トータル金額用（高速代込みなので閾値を高めに）
+function tpcls(p){return p<12000?'cheap':p<20000?'mid':'prem';}
+function pfmt(p){
+  if(!p||p===0) return 'GORAで確認';
+  return '参考 ¥'+p.toLocaleString()+'〜';
+}
+function mkUrls(c){
+  const enc=encodeURIComponent(c.name);
+  const pref=encodeURIComponent(c.addr.replace(/[市区町村].*/,''));
+  // APIから直接goraUrlが来た場合はアフィリエイトタグを付けて使う
+  const goraBase = c.goraUrl
+    ? c.goraUrl + '&aftid=' + AFF.rakutenId
+    : 'https://gora.golf.rakuten.co.jp/search/?searchWord='+enc+'&aftid='+AFF.rakutenId;
+  // インスタのタグ検索（コース名でハッシュタグ検索）
+  const instaQ = encodeURIComponent(c.name);
+  return{
+    gora:  goraBase,
+    hp:    c.hp || 'https://www.google.com/search?q='+enc+'+ゴルフ場+公式',
+    insta: 'https://www.google.com/search?q='+enc+'+ゴルフ場&tbm=isch',
+    times: 'https://timescar-rental.com/search/?area='+pref,
+    jalan: 'https://www.jalan.net/rentacar/search/?destination='+enc,
+    map:   'https://www.google.com/maps/search/'+enc+'/@'+c.lat+','+c.lng+',14z',
+  };
+}
+
+// ══════════════════════════════════
+// VIEW ROUTING
+// ══════════════════════════════════
+function showView(name){
+  document.querySelectorAll('.view').forEach(v=>v.classList.add('hidden'));
+  document.getElementById('v-'+name).classList.remove('hidden');
+  currentView=name;
+  if(name==='want')renderWantList();
+}
+
+// ══════════════════════════════════
+// ONBOARDING
+// ══════════════════════════════════
+function startApp(){
+  const btn=document.getElementById('ob-btn');
+  btn.classList.add('loading');
+  btn.innerHTML='<span class="spin"></span> 位置情報を取得中...';
+  document.getElementById('v-onboard').style.opacity='0';
+  setTimeout(()=>{
+    showView('swipe');
+    getLocation();
+  },420);
+}
+
+// ══════════════════════════════════
+// GEOLOCATION
+// ══════════════════════════════════
+function getLocation(cb){
+  if(!navigator.geolocation){useDemo(cb);return;}
+  navigator.geolocation.getCurrentPosition(
+    pos=>{uLat=pos.coords.latitude;uLng=pos.coords.longitude;uLabel='現在地';buildDeck();if(cb)cb();},
+    ()=>useDemo(cb),
+    {timeout:10000,enableHighAccuracy:false}
+  );
+}
+function useDemo(cb){uLat=35.6812;uLng=139.7671;uLabel='デモ（東京駅）';buildDeck();if(cb)cb();}
+
+// ══════════════════════════════════
+// SEARCH
+// ══════════════════════════════════
+async function doSearch(){
+  const q=document.getElementById('sw-inp').value.trim();if(!q)return;
+  const btn=document.getElementById('sw-go');btn.textContent='…';btn.disabled=true;
+  try{
+    const res=await fetch('https://nominatim.openstreetmap.org/search?q='+encodeURIComponent(q+' 日本')+'&format=json&limit=1',{headers:{'Accept-Language':'ja'}});
+    const d=await res.json();
+    if(d&&d.length){uLat=parseFloat(d[0].lat);uLng=parseFloat(d[0].lon);uLabel=d[0].display_name.split(',')[0];buildDeck();}
+    else alert('住所が見つかりませんでした。');
+  }catch(e){useDemo();}
+  finally{btn.textContent='検索';btn.disabled=false;}
+}
+
+// ══════════════════════════════════
+// FILTERS
+// ══════════════════════════════════
+function onSlider(el){
+  const v=parseFloat(el.value);maxHours=v>=4?null:v;
+  el.style.setProperty('--pct',((v-.5)/3.5*100)+'%');
+  document.getElementById('sw-slider-val').textContent=v>=4?'制限なし':fmtT(v)+'以内';
+  // 高速代の目安を表示
+  const tollRow=document.getElementById('toll-row');
+  const tollDisp=document.getElementById('toll-display');
+  if(tollRow&&tollDisp){
+    if(v<4){
+      const avgKm=v*80/1.4;
+      const toll=estToll(avgKm);
+      tollRow.style.display='flex';
+      tollDisp.textContent=toll>0?fmtToll(toll):'高速不要';
+    } else {
+      tollRow.style.display='none';
+    }
+  }
+  document.getElementById('sl-reset').style.display=v<4?'inline-block':'none';
+  if(uLat)buildDeck();
+}
+function resetSlider(){
+  maxHours=null;const el=document.getElementById('sw-slider');
+  el.value=4;el.style.setProperty('--pct','100%');
+  document.getElementById('sw-slider-val').textContent='制限なし';
+  document.getElementById('sl-reset').style.display='none';
+  if(uLat)buildDeck();
+}
+function setPrice(val,el){
+  priceFilter=val;
+  document.querySelectorAll('.pchip').forEach(c=>c.classList.remove('ac','am','ap'));
+  el.classList.add(val==='cheap'?'ac':val==='mid'?'am':val==='prem'?'ap':'ac');
+  if(uLat)buildDeck();
+}
+
+// ══════════════════════════════════
+// 料金をバックグラウンドで取得
+// ══════════════════════════════════
+async function fetchPricesInBackground(courses) {
+  for (const c of courses) {
+    try {
+      const res = await fetch(`${WORKERS_URL}/api/price?id=${c.id}`);
+      if (!res.ok) continue;
+      const data = await res.json();
+      if (data.weekday > 0 || data.weekend > 0) {
+        // デッキ内のカードを更新
+        c.weekday = data.weekday;
+        c.weekend = data.weekend;
+        c.toll = estToll(c.km);
+        updateCardPrice(c);
+      }
+    } catch(e) { }
+    await new Promise(r=>setTimeout(r,1200));
+  }
+}
+
+function updateCardPrice(c) {
+  // スワイプカード内の料金表示を更新
+  const card = document.querySelector(`.swipe-card[data-id="${c.id}"]`);
+  if (!card) return;
+  const wpc = pcls(c.weekday), epc = pcls(c.weekend);
+  const wTotal = c.weekday + c.toll, eTotal = c.weekend + c.toll;
+
+  const priceEl = card.querySelector('.sc-prices');
+  if (priceEl) {
+    priceEl.innerHTML = `
+      <div class="sc-price"><div class="sc-price-lbl">土日祝（平均）</div><div class="sc-price-val ${epc}">${pfmt(c.weekend)}</div><div class="sc-price-sub">${c.holes}H・グリーンフィーのみ</div></div>
+      <div class="sc-price" style="opacity:.65"><div class="sc-price-lbl">平日（参考）</div><div class="sc-price-val ${wpc}" style="font-size:13px">${pfmt(c.weekday)}</div><div class="sc-price-sub">キャディなし</div></div>
+    `;
+  }
+  const bannerVal = card.querySelector('.sc-total-banner-val');
+  const bannerToll = card.querySelector('.sc-total-banner-toll');
+  const bannerWd = card.querySelector('.sc-total-banner-weekday');
+  if (bannerVal) { bannerVal.className = `sc-total-banner-val ${pcls(eTotal)}`; bannerVal.textContent = pfmt(eTotal); }
+  if (bannerToll) bannerToll.textContent = `🛣 高速 ${fmtToll(c.toll)}`;
+  if (bannerWd) bannerWd.textContent = `平日 ${pfmt(wTotal)}`;
+}
+
+// ══════════════════════════════════
+// 料金をバックグラウンドで取得
+// ══════════════════════════════════
+async function fetchPricesInBackground(courses) {
+  for (const c of courses) {
+    try {
+      const res = await fetch(`${WORKERS_URL}/api/price?id=${c.id}`);
+      if (!res.ok) continue;
+      const data = await res.json();
+      if (data.weekday > 0 || data.weekend > 0) {
+        c.weekday = data.weekday;
+        c.weekend = data.weekend;
+        c.toll = estToll(c.km);
+        updateCardPrice(c);
+        // キャッシュも更新
+        if(cachedCourses) {
+          const idx = cachedCourses.data.findIndex(x=>x.id===c.id);
+          if(idx>=0){ cachedCourses.data[idx].weekday=c.weekday; cachedCourses.data[idx].weekend=c.weekend; }
+        }
+      }
+    } catch(e) {}
+    await new Promise(r=>setTimeout(r,1200));
+  }
+}
+
+function updateCardPrice(c) {
+  // スワイプカード内の料金表示を更新
+  const card = document.querySelector(`.swipe-card[data-id="${c.id}"]`);
+  if (!card) return;
+  const wpc = pcls(c.weekday), epc = pcls(c.weekend);
+  const wTotal = c.weekday + c.toll, eTotal = c.weekend + c.toll;
+
+  const priceEl = card.querySelector('.sc-prices');
+  if (priceEl) {
+    priceEl.innerHTML = `
+      <div class="sc-price"><div class="sc-price-lbl">土日祝（平均）</div><div class="sc-price-val ${epc}">${pfmt(c.weekend)}</div><div class="sc-price-sub">${c.holes}H・グリーンフィーのみ</div></div>
+      <div class="sc-price" style="opacity:.65"><div class="sc-price-lbl">平日（参考）</div><div class="sc-price-val ${wpc}" style="font-size:13px">${pfmt(c.weekday)}</div><div class="sc-price-sub">キャディなし</div></div>
+    `;
+  }
+  const bannerVal = card.querySelector('.sc-total-banner-val');
+  const bannerToll = card.querySelector('.sc-total-banner-toll');
+  const bannerWd = card.querySelector('.sc-total-banner-weekday');
+  if (bannerVal) { bannerVal.className = `sc-total-banner-val ${pcls(eTotal)}`; bannerVal.textContent = pfmt(eTotal); }
+  if (bannerToll) bannerToll.textContent = `🛣 高速 ${fmtToll(c.toll)}`;
+  if (bannerWd) bannerWd.textContent = `平日 ${pfmt(wTotal)}`;
+}
+
+// ══════════════════════════════════
+// DECK BUILD
+// ══════════════════════════════════
+async function buildDeck(){
+  // ── ローディング表示 ──
+  showDeckLoading(true);
+
+  let rawList;
+  try{
+    // Workers API が設定済みなら楽天GORAから取得
+    if(WORKERS_URL && !WORKERS_URL.includes('YOUR_NAME')){
+      // キャッシュがあれば再利用（フィルター変更時はAPIを叩かない）
+      if(cachedCourses && cachedCourses.lat===uLat && cachedCourses.lng===uLng){
+        rawList = cachedCourses.data;
+      } else {
+        const res = await fetch(
+          `${WORKERS_URL}/api/courses?lat=${uLat.toFixed(6)}&lng=${uLng.toFixed(6)}&hits=30`
+        );
+        if(!res.ok) throw new Error('API error '+res.status);
+        const data = await res.json();
+        rawList = data.courses || [];
+        cachedCourses = {lat:uLat, lng:uLng, data:rawList}; // キャッシュ保存
+      }
+    } else {
+      rawList = COURSES;
+    }
+  } catch(e){
+    console.warn('API fetch failed, using sample data:', e);
+    rawList = COURSES;
+  }
+
+  // 距離・時間・高速代を付加
+  let list = rawList.map(c=>{
+    const km  = haversine(uLat,uLng,c.lat,c.lng);
+    const dh  = estDriveH(km);
+    const toll= estToll(km);
+    return{...c,km,dh,toll};
+  }).sort((a,b)=>a.km-b.km);
+
+  // フィルター
+  if(maxHours!==null) list=list.filter(c=>c.dh<=maxHours);
+  // 料金フィルターは土日プレーフィー（高速代なし）で絞る
+  if(priceFilter==='cheap') list=list.filter(c=>c.weekend>0&&c.weekend<8000);
+  else if(priceFilter==='mid')  list=list.filter(c=>c.weekend>=8000&&c.weekend<15000);
+  else if(priceFilter==='prem') list=list.filter(c=>c.weekend>=15000);
+
+  showDeckLoading(false);
+  deck=list; deckIdx=0; history=[];
+  updateStatus(list.length);
+  renderDeck();
+  // バックグラウンドで料金を取得
+  if(WORKERS_URL && !WORKERS_URL.includes('YOUR_NAME')){
+    fetchPricesInBackground(list);
+  }
+}
+
+function showDeckLoading(show){
+  const area=document.getElementById('deck-area');
+  let el=document.getElementById('deck-loading');
+  if(show){
+    if(!el){
+      el=document.createElement('div');
+      el.id='deck-loading';
+      el.style.cssText='position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:var(--muted);font-size:13px;background:var(--bg);z-index:10;';
+      el.innerHTML='<div class="spin" style="width:28px;height:28px;border-width:3px;border-top-color:var(--accent)"></div>コース情報を取得中...';
+      area.appendChild(el);
+    }
+    el.style.display='flex';
+    document.getElementById('deck-empty').style.display='none';
+    area.querySelectorAll('.swipe-card').forEach(c=>c.remove());
+  } else {
+    if(el) el.style.display='none';
+  }
+}
+
+function updateStatus(n){
+  const sv=document.getElementById('sw-slider-val').textContent;
+  const parts=[];
+  if(maxHours!==null)parts.push(sv);
+  if(priceFilter!=='all')parts.push({cheap:'〜¥8,000',mid:'〜¥15,000',prem:'¥15,000〜'}[priceFilter]);
+  document.getElementById('sw-count').textContent=n+'件'+(parts.length?' ('+parts.join('・')+')':'');
+  document.getElementById('sw-loc').textContent='📍 '+uLabel;
+}
+
+// ══════════════════════════════════
+// RENDER DECK
+// ══════════════════════════════════
+function renderDeck(){
+  const area=document.getElementById('deck-area');
+  // 古いカード削除
+  area.querySelectorAll('.swipe-card').forEach(el=>el.remove());
+
+  const empty=document.getElementById('deck-empty');
+  const counter=document.getElementById('deck-counter');
+
+  if(deckIdx>=deck.length){
+    empty.style.display='flex';counter.style.display='none';return;
+  }
+  empty.style.display='none';counter.style.display='block';
+
+  // 現在+次の計2枚を重ねて表示（奥のカードが少し見える）
+  const toRender=Math.min(2,deck.length-deckIdx);
+  for(let i=toRender-1;i>=0;i--){
+    const c=deck[deckIdx+i];
+    const card=makeCard(c,deckIdx+i,i===0);
+    area.appendChild(card);
+    if(i>0){
+      card.style.transform='scale(.95) translateY(12px)';
+      card.style.zIndex=1;
+      card.style.pointerEvents='none';
+    } else {
+      card.style.zIndex=2;
+      attachSwipe(card,c);
+    }
+  }
+  counter.textContent=(deckIdx+1)+' / '+deck.length;
+}
+
+function makeCard(c,globalIdx,isTop){
+  const div=document.createElement('div');
+  div.className='swipe-card';
+  div.dataset.id=c.id;
+
+  const kmStr=c.km<10?c.km.toFixed(1):Math.round(c.km);
+  const wpc=pcls(c.weekday),epc=pcls(c.weekend);
+
+  // 写真URLがあればimgタグ、なければCSSグラデ＋イニシャル
+  const initials = c.name.replace(/[ゴルフ倶楽部カントリークラブコース]/g,'').trim().slice(0,2)||c.name.slice(0,2);
+  const heroInner = c.imageUrl
+    ? `<img src="${c.imageUrl}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;" loading="lazy" onerror="this.style.display='none'">`
+    : `<div class="sc-placeholder" style="position:relative;z-index:1"><div class="sc-initial">${initials}</div><div class="sc-emoji">${c.e||'⛳'}</div></div>`;
+  const gradients=[
+    'linear-gradient(135deg,#0d3320,#1a6640)',
+    'linear-gradient(135deg,#0d2033,#1a4066)',
+    'linear-gradient(135deg,#331a0d,#664020)',
+    'linear-gradient(135deg,#1a2d0d,#3a5a1a)',
+    'linear-gradient(135deg,#1a0d33,#3d1a66)',
+    'linear-gradient(135deg,#0d2233,#1a4455)',
+    'linear-gradient(135deg,#2d1a0d,#5a3a1a)',
+    'linear-gradient(135deg,#0d1a2d,#1a3355)',
+  ];
+  const grad=gradients[c.id%gradients.length];
+
+  div.innerHTML=`
+<div class="sc-hero" style="background:${grad}">
+  ${heroInner}
+  <div class="sc-hero-overlay"></div>
+  <div class="sc-rank${globalIdx<3?' top':''}">#${globalIdx+1}</div>
+  <div class="sc-badges">
+    <div class="sc-dist">${kmStr}km · 🚗${fmtT(c.dh)}</div>
+  </div>
+  <div class="sc-total-banner">
+    <div class="sc-total-banner-main">
+      <div class="sc-total-banner-lbl">土日トータル目安（高速込）</div>
+      <div class="sc-total-banner-val ${tpcls(c.weekend+c.toll)}">${pfmt(c.weekend+c.toll)}</div>
+    </div>
+    <div class="sc-total-banner-sub">
+      <div class="sc-total-banner-toll">🛣 高速 ${fmtToll(c.toll)}</div>
+      <div class="sc-total-banner-weekday">平日 ${pfmt(c.weekday+c.toll)}</div>
+    </div>
+  </div>
+</div>
+<div class="sc-body">
+  <div class="sc-name">${c.name}</div>
+  <div class="sc-addr">📌 ${c.addr}${c.note?' — '+c.note:''}</div>
+  <div class="sc-tags">${c.tags.map(t=>'<span class="sc-tag">'+t+'</span>').join('')}</div>
+  <div class="sc-prices">
+    <div class="sc-price"><div class="sc-price-lbl">土日祝（平均）</div><div class="sc-price-val ${epc}">${pfmt(c.weekend)}</div><div class="sc-price-sub">${c.holes}H・グリーンフィーのみ</div></div>
+    <div class="sc-price" style="opacity:.65"><div class="sc-price-lbl">平日（参考）</div><div class="sc-price-val ${wpc}" style="font-size:13px">${pfmt(c.weekday)}</div><div class="sc-price-sub">キャディなし</div></div>
+  </div>
+  <div class="sc-toll-block">
+    <div class="sc-toll-row">
+      <span class="sc-toll-lbl">🛣 高速代（往復・ETC）</span>
+      <span class="sc-toll-val">${fmtToll(c.toll)}</span>
+    </div>
+    <div class="sc-toll-row" style="padding-top:4px;opacity:.55;">
+      <span class="sc-toll-lbl" style="font-size:10px;">※高速代は目安です。実際の料金はナビ等でご確認ください。カート・キャディ代別途。</span>
+    </div>
+  </div>
+  ${c.note?'<div class="sc-note">💬 '+c.note+'</div>':''}
+</div>`;
+  return div;
+}
+
+// ══════════════════════════════════
+// SWIPE LOGIC
+// ══════════════════════════════════
+function attachSwipe(card,course){
+  let startX=0,startY=0,curX=0,isDragging=false;
+  const threshold=80;
+
+  function onStart(e){
+    // スクロール中は無視
+    const touch=e.touches?e.touches[0]:e;
+    startX=touch.clientX;startY=touch.clientY;curX=0;isDragging=true;
+    card.style.transition='none';
+  }
+  function onMove(e){
+    if(!isDragging)return;
+    const touch=e.touches?e.touches[0]:e;
+    curX=touch.clientX-startX;
+    const curY=touch.clientY-startY;
+    // 縦スクロールが主体なら無視
+    if(Math.abs(curY)>Math.abs(curX)*1.5)return;
+    e.preventDefault();
+    const rot=curX*0.08;
+    card.style.transform=`translateX(${curX}px) rotate(${rot}deg)`;
+    // ラベル表示
+    const ratio=Math.min(Math.abs(curX)/threshold,1);
+    if(curX>20){document.getElementById('lbl-want').style.opacity=ratio;document.getElementById('lbl-pass').style.opacity=0;}
+    else if(curX<-20){document.getElementById('lbl-pass').style.opacity=ratio;document.getElementById('lbl-want').style.opacity=0;}
+    else{document.getElementById('lbl-want').style.opacity=0;document.getElementById('lbl-pass').style.opacity=0;}
+  }
+  function onEnd(){
+    if(!isDragging)return;isDragging=false;
+    document.getElementById('lbl-want').style.opacity=0;
+    document.getElementById('lbl-pass').style.opacity=0;
+    card.style.transition='transform .35s cubic-bezier(.25,.46,.45,.94)';
+    if(curX>threshold){flyOut(card,course,'want');}
+    else if(curX<-threshold){flyOut(card,course,'pass');}
+    else{card.style.transform='translateX(0) rotate(0)';}
+  }
+
+  card.addEventListener('mousedown',onStart);
+  card.addEventListener('mousemove',onMove);
+  card.addEventListener('mouseup',onEnd);
+  card.addEventListener('touchstart',onStart,{passive:true});
+  card.addEventListener('touchmove',onMove,{passive:false});
+  card.addEventListener('touchend',onEnd);
+}
+
+function flyOut(card,course,dir){
+  const x=dir==='want'?window.innerWidth*1.3:-window.innerWidth*1.3;
+  const rot=dir==='want'?30:-30;
+  card.style.transition='transform .4s cubic-bezier(.25,.46,.45,.94), opacity .4s';
+  card.style.transform=`translateX(${x}px) rotate(${rot}deg)`;
+  card.style.opacity='0';
+  history.push({course,dir,idx:deckIdx});
+  if(dir==='want') addWant(course);
+  deckIdx++;
+  setTimeout(()=>{card.remove();renderDeck();},350);
+}
+
+// ボタン操作
+function doPass(){
+  const card=document.querySelector('.swipe-card[style*="z-index: 2"], .swipe-card');
+  if(!card||deckIdx>=deck.length)return;
+  flyOut(card,deck[deckIdx],'pass');
+}
+function doWant(){
+  const card=document.querySelector('.swipe-card[style*="z-index: 2"], .swipe-card');
+  if(!card||deckIdx>=deck.length)return;
+  flyOut(card,deck[deckIdx],'want');
+}
+function undoSwipe(){
+  if(!history.length)return;
+  const last=history.pop();
+  if(last.dir==='want') removeWant(last.course.id);
+  deckIdx=last.idx;
+  renderDeck();
+}
+function resetDeck(){deckIdx=0;history=[];renderDeck();}
+
+// ══════════════════════════════════
+// WANT LIST
+// ══════════════════════════════════
+function addWant(c){
+  if(!wantList.find(w=>w.id===c.id)) wantList.push(c);
+  updateWantBadge();
+}
+function removeWant(id){
+  wantList=wantList.filter(w=>w.id!==id);
+  updateWantBadge();
+  if(currentView==='want')renderWantList();
+}
+function updateWantBadge(){
+  const badge=document.getElementById('want-count');
+  badge.textContent=wantList.length;
+  badge.style.display=wantList.length?'flex':'none';
+}
+
+function renderWantList(){
+  const list=document.getElementById('wl-list');
+  const empty=document.getElementById('wl-empty');
+  document.getElementById('wl-subtitle').textContent=wantList.length+'件のコース';
+  if(!wantList.length){list.innerHTML='';list.style.display='none';empty.style.display='flex';return;}
+  empty.style.display='none';list.style.display='flex';
+
+  list.innerHTML=wantList.map(c=>{
+    const u=mkUrls(c);
+    const kmStr=c.km<10?c.km.toFixed(1):Math.round(c.km);
+    const wpc=pcls(c.weekday),epc=pcls(c.weekend);
+    const tUrl=u.times.replace(/'/g,"\\'");
+    const jUrl=u.jalan.replace(/'/g,"\\'");
+    const wlInitials=c.name.replace(/[ゴルフ倶楽部カントリークラブコース]/g,'').trim().slice(0,2)||c.name.slice(0,2);
+    const wlGrads=['linear-gradient(135deg,#0d3320,#1a6640)','linear-gradient(135deg,#0d2033,#1a4066)','linear-gradient(135deg,#331a0d,#664020)','linear-gradient(135deg,#1a2d0d,#3a5a1a)','linear-gradient(135deg,#1a0d33,#3d1a66)','linear-gradient(135deg,#0d2233,#1a4455)','linear-gradient(135deg,#2d1a0d,#5a3a1a)','linear-gradient(135deg,#0d1a2d,#1a3355)'];
+    const wlGrad=wlGrads[c.id%wlGrads.length];
+    const wlEmoji=c.e||'⛳';
+    const hpUrl=u.hp.replace(/'/g,"\'");
+    return`<div class="wl-card">
+  <div class="wl-hero" style="background:${wlGrad}">
+    ${c.imageUrl ? `<img src="${c.imageUrl}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;" loading="lazy">` : `<div class="wl-placeholder" style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:2px;"><div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:rgba(255,255,255,.35);letter-spacing:2px;">${wlInitials}</div><div style="font-size:22px;">${wlEmoji}</div></div>`}
+    <div class="wl-hero-ov"></div>
+    <div class="wl-dist">${kmStr}km · 🚗${fmtT(c.dh)}</div>
+  </div>
+  <div class="wl-body">
+    <div class="wl-name">${c.name}</div>
+    <div class="wl-meta">📌 ${c.addr}　${c.holes}ホール${c.note?' — '+c.note:''}</div>
+    <div class="wl-prices">
+      <div class="wl-price"><div class="wl-price-lbl">土日祝</div><div class="wl-price-val ${epc}">${pfmt(c.weekend)}</div></div>
+      <div class="wl-price" style="opacity:.65"><div class="wl-price-lbl">平日（参考）</div><div class="wl-price-val ${wpc}" style="font-size:12px">${pfmt(c.weekday)}</div></div>
+      <div class="wl-price"><div class="wl-price-lbl">🛣 高速代(往復)</div><div class="wl-price-val" style="font-size:12px;color:var(--muted)">${fmtToll(c.toll)}</div></div>
+    </div>
+    <div class="wl-total-block">
+      <div class="wl-total-row"><span>💴 平日トータル</span><span class="wl-total-val ${pcls(c.weekday+c.toll)}">${pfmt(c.weekday+c.toll)}</span></div>
+      <div class="wl-total-row"><span>💴 土日トータル</span><span class="wl-total-val ${pcls(c.weekend+c.toll)}">${pfmt(c.weekend+c.toll)}</span></div>
+    </div>
+    <div class="wl-btns">
+      <button class="wl-btn-gora" onclick="window.open('${u.gora}','_blank')">📅 GORAで予約</button>
+      <button class="wl-btn-insta" onclick="window.open('${u.insta}','_blank')">🔍 画像で見る</button>
+    </div>
+    <div class="wl-btns" style="margin-top:6px">
+      <button class="wl-btn-hp"     onclick="window.open('${hpUrl}','_blank')">🌐 公式HP</button>
+      <button class="wl-btn-map"    onclick="window.open('${u.map}','_blank')">🗺 地図</button>
+
+      <button class="wl-btn-remove" onclick="removeWant(${c.id})">✕</button>
+    </div>
+    <div class="wl-aff">※GORAリンク・レンタカーはアフィリエイト広告 <span class="pr-badge">PR</span></div>
+  </div>
+</div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════
+// 共有機能
+// ══════════════════════════════════
+function shareList(){
+  if(!wantList.length){
+    alert('行きたいリストが空です。コースを保存してから共有してください。');
+    return;
+  }
+  const text = '⛳ 行きたいゴルフ場リスト\n\n' +
+    wantList.map((c,i)=>{
+      const kmStr=c.km<10?c.km.toFixed(1):Math.round(c.km);
+      const price=c.weekend>0?'土日 参考¥'+c.weekend.toLocaleString()+'〜':'GORAで確認';
+      return `${i+1}. ${c.name}\n   📍 ${c.addr}\n   🚗 ${fmtT(c.dh)} / ${kmStr}km\n   💴 ${price}`;
+    }).join('\n\n') +
+    '\n\n🔍 GOLF NEAR ME で探す\nhttps://545ac13b.golf-near-me-pages.pages.dev';
+
+  if(navigator.share){
+    navigator.share({
+      title:'行きたいゴルフ場リスト ⛳',
+      text: text,
+    }).catch(()=>{});
+  } else {
+    // フォールバック：クリップボードにコピー
+    navigator.clipboard.writeText(text).then(()=>{
+      alert('リストをコピーしました！LINEやメモに貼り付けて共有できます。');
+    }).catch(()=>{
+      alert(text);
+    });
+  }
+}
+
+// ══════════════════════════════════
+// RENTAL MODAL
+// ══════════════════════════════════
+function showRental(t,j){rentalUrls={times:t,jalan:j};document.getElementById('modal-wrap').classList.add('open');}
+function closeModal(){document.getElementById('modal-wrap').classList.remove('open');}
+function openRental(k){window.open(rentalUrls[k],'_blank');closeModal();}
+
+// ══════════════════════════════════
+// INIT
+// ══════════════════════════════════
+document.getElementById('sw-slider').style.setProperty('--pct','100%');
+</script>
+</body>
+</html>
